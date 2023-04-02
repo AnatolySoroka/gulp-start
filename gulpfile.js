@@ -6,6 +6,7 @@ const uglify = require('gulp-uglify-es').default;
 const browserSync = require('browser-sync').create();
 const autoprefixer = require('gulp-autoprefixer');
 const clean = require('gulp-clean');
+const imagemin = require("gulp-imagemin");
 
 function scripts() {
     return src('app/js/main.js')
@@ -23,6 +24,21 @@ function styles() {
         .pipe(dest('app/css'))
         .pipe(browserSync.stream())
 }
+
+function images() {
+    return src("app/images/**/*")
+      .pipe(
+        imagemin([
+          imagemin.gifsicle({ interlaced: true }),
+          imagemin.mozjpeg({ quality: 75, progressive: true }),
+          imagemin.optipng({ optimizationLevel: 5 }),
+          imagemin.svgo({
+            plugins: [{ removeViewBox: true }, { cleanupIDs: false }],
+          }),
+        ])
+      )
+      .pipe(dest("dist/images"));
+  }
 
 function watching() {
     watch(['app/scss/style.scss'], styles)
@@ -56,6 +72,7 @@ exports.styles = styles;
 exports.scripts = scripts;
 exports.watching = watching;
 exports.browsersync = browsersync;
+exports.images = images;
 
 exports.build = series(cleanDist, building);
 exports.default = parallel(styles, scripts, browsersync, watching)
